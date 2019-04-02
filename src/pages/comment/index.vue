@@ -80,7 +80,21 @@ export default {
     },
     _submitComments (content, id, type) {
       this.$http[type].submitComments({content}, id).then(res => {
-        res.data.forEach(e => {
+        if (typeof res === 'string') {
+          wx.showToast({
+            title: '请先登录',
+            icon: 'none',
+            duration: 1000,
+            mask: true
+          })
+          setTimeout(() => {
+            wx.redirectTo({
+              url: '/pages/login/main'
+            })
+          }, 1000)
+          return
+        }
+        res.data && res.data.forEach(e => {
           e.created_format = formatTime(e.created_at, true)
         })
         this.callbackCommentsList = this.callbackCommentsList.concat(res.data)
@@ -187,7 +201,8 @@ export default {
     left: 0;
     margin: 30rpx 0;
     color: #ffffff;
-    background: linear-gradient(to left top,rgb(234, 124, 62), rgb(173, 26, 139));
+    // background: linear-gradient(to left top,rgb(234, 124, 62), rgb(173, 26, 139));
+    background: rgb(242, 13, 13);
     opacity: .85;
   }
   /*

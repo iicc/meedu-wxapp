@@ -12,7 +12,7 @@
       next-margin	="15px">
       <block v-for="(item, index) in swiperList" :key="index">
         <swiper-item>
-            <div class="for-padding" @click="goToInfo(item.id)">
+            <div class="for-padding" @click="goToInfo(item)">
               <img v-if="item.thumb" :class="{'active': activeIndex === index}"  :src="item.thumb" class="slide-image"/>
               <!-- <span v-if="item.title" class="slide-msg">{{item.title}}</span> :mode="activeIndex === index ? 'widthFix' : ''" -->
             </div>
@@ -48,8 +48,8 @@ export default {
       console.log(e.mp.detail.current)
       this.activeIndex = e.mp.detail.current
     },
-    goToInfo (id) {
-      this.$emit('navigateTo', id)
+    goToInfo (course) {
+      this.$emit('navigateTo', course)
     }
   }
 }
@@ -57,13 +57,14 @@ export default {
 
 <style lang="less">
   .swiper-comp{
+    height: 330rpx;
     .for-padding{
       position: relative;
       top: 0;
       left: 0;
-      padding: 0 5px;
+      padding: 10rpx;
       width:100%;
-      height: auto;
+      height: 320rpx;
       box-sizing: border-box;
       .slide-image{
         position: relative;
@@ -74,6 +75,7 @@ export default {
         height: 240rpx;
         border-radius: 10px;
         box-sizing: border-box;
+        box-shadow: 0rpx 2rpx 6rpx rgba(0, 0, 0, 0.1);
       }
       .active{
         height: 300rpx;

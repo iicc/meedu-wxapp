@@ -8,7 +8,8 @@
         {{course.title}}
         <div class="card-info__desc" v-html="course.short_description"></div>
       </div>
-      <div class="card-info__oth" v-if="course.charge">币{{course.charge}}</div>
+      <!-- <div class="card-info__oth" v-if="course.charge">币{{course.charge}}</div> -->
+      <div class="card-info__oth" v-if="course.charge">实战课程</div>
       <div class="card-info__oth" v-else>免费课程</div>
     </div>
   </div>
@@ -43,6 +44,7 @@ export default {
       width: 240rpx;
       height: 80px;
       border-radius: 10rpx;
+      box-shadow: 0rpx 2rpx 6rpx rgba(0, 0, 0, 0.1);
     }
   }
   .card-info{

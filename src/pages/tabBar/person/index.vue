@@ -19,27 +19,34 @@
     </div>
     <div class="user">
       <ul class="info">
-        <li class="info-item">我的会员
-          <span class="info-item-content" v-if="usrInfo && userInfo.role && userInfo.role.length > 0">{{userInfo.role || ' '}}</span>
-          <span class="info-item-content" @click="bugVip">会员列表</span>
+        <li class="info-item">
+          <text class="icon-favorfill lg text-gray"></text>
+          我的会员
+          <span class="info-item-content" v-if="usrInfo && userInfo.role && userInfo.role.length > 0">{{userInfo.role || '普通会员'}}</span>
+          <!-- <span class="info-item-content" @click="bugVip">会员列表</span> -->
         </li>
         <li class="info-item">余额<span class="info-item-content">{{userInformation.name || 0}}币</span></li>
         <li class="info-item" v-if="userInfo">手机号<span class="info-item-content">{{userInfo.mobile || ' '}}</span></li>
         <li class="info-item" @click="toMyCourse">
           我的课程<span class="info-item-content">
-            <img class="turn-right-icon" src="../../../assets/img/turn-right-b.png" alt="" mode="widthFix">
+            <img class="turn-right-icon" src="../../../assets/img/turn-right-d.png" alt="" mode="widthFix">
           </span>
         </li>
         <li class="info-item" @click="goOrderList">
           我的订单<span class="info-item-content">
-            <img class="turn-right-icon" src="../../../assets/img/turn-right-b.png" alt="" mode="widthFix">
+            <img class="turn-right-icon" src="../../../assets/img/turn-right-d.png" alt="" mode="widthFix">
           </span>
           <!-- <span class="info-item-content">{{rebateOrderTotal}}</span> -->
         </li>
+        <li class="info-item" @click="appreciate">赞赏<span class="info-item-content"><img class="turn-right-icon" src="../../../assets/img/turn-right-d.png" alt="" mode="widthFix"></span></li>
+
       </ul>
     </div>
+    <div style="padding:30rpx;">
+          <button class="lagout-btn" @click="lagout">退出登陆</button>
 
-    <button class="lagout-btn" @click="lagout">退出登陆</button>
+    </div>
+    <div class="cu-tabbar-height"></div>
 
   </div>
 </template>
@@ -63,12 +70,6 @@ export default {
       rebateOrderTotal: 0,
       showCouponModel: false
     }
-  },
-  created () {
-    console.log('created---------->')
-  },
-  mounted () {
-    console.log('mounted---------->')
   },
   onShow () {
     this.init()
@@ -111,6 +112,17 @@ export default {
         url: '../../login/main'
       })
     },
+    // 打开给赞小程序
+    appreciate () {
+      wx.navigateToMiniProgram({
+        appId: 'wx18a2ac992306a5a4',
+        path: process.env.zan_path,
+        envVersion: 'release',
+        success (res) {
+          // 打开成功
+        }
+      })
+    },
     _getUserInfo (data) {
       this.$http.user.getUserInfo().then(res => {
         this.userInfo = res.data
@@ -123,6 +135,8 @@ export default {
 @import '../../../assets/style/variable.less';
 .person{
   position: relative;
+  background-color: #f1f1f1;
+  font-family: Helvetica Neue, Helvetica, sans-serif;
   .header{
     position: relative;
     top: 0;
@@ -131,6 +145,7 @@ export default {
     height: auto;
     padding: 20px 20px;
     box-sizing: border-box;
+    overflow: hidden;
     .bg-img{
       position: absolute;
       top: 0;
@@ -187,24 +202,48 @@ export default {
     position: relative;;
     left:0;
     top:0;
-    width: 100%;
     box-sizing:border-box;
-    padding: 20px;
+    padding: 0 30rpx;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
-    width: 100%;
     justify-content: space-between;
+    margin: 50rpx 30rpx;
+    border-radius: 20rpx;
+    box-sizing: border-box;
+    background-color: #fff;
+    box-shadow: 0rpx 40rpx 100rpx 0rpx rgba(0, 0, 0, 0.07);
   }
 
   .lagout-btn{
     position: relative;
     top: 0;
     left: 0;
-    margin: 0 40rpx;
-    color: #373737;
-    background: #fff;
+    width: 100%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
+    padding:0 30rpx;
+    font-size:28rpx;
+    line-height:1;
+    text-align:center;
+    text-decoration:none;
+    overflow:visible;
+    margin-left:initial;
+    transform:translate(0rpx, 0rpx);
+    margin-right:initial;
+
+    font-size:32rpx;
+    height:80rpx;
+    background-color:#e54d42;
+    color:#fff;
+    border-radius:5px;
+    -webkit-tap-highlight-color:transparent;
+
+    opacity: .9;
+
   }
 }
 
@@ -213,14 +252,14 @@ export default {
 
 .info{
   width: 100%;
+  font-size: 30rpx;
   .info-item{
-    height: 78rpx;
+    height: 100rpx;
+    line-height: 100rpx;
     text-align: left;
-    font-size: 32rpx;
-    font-family:PingFangSC-Regular;
+    font-size: 30rpx;
+    // font-family:PingFangSC-Regular;
     color:#1A1A1A;
-    line-height: 44rpx;
-    margin-bottom: 34rpx;
     border-bottom: 2rpx solid #E1E1E1;
     .info-item-content{
       float: right;
@@ -235,6 +274,14 @@ export default {
     // &:last-child{
     //   border-bottom:0rpx;
     // }
+    &:last-child{
+      border-bottom: none;
+    }
   }
+}
+
+.cu-tabbar-height {
+  min-height: 100rpx;
+  height: calc(100rpx + env(safe-area-inset-bottom) / 2);
 }
 </style>

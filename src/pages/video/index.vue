@@ -3,13 +3,11 @@
     <!-- video -->
     <div class="video-box">
       <video style="width: 100%;" v-if="playUrl && playUrl.length > 0" :src="playUrl[0].url"  controls objectFit="contain"></video>
-      <div v-else class="">
-        <h3>当前视频无法观看</h3>
-      </div>
+      <div v-else class="video-box_null">当前视频无法观看</div>
     </div>
     <!-- tabBar -->
     <div class="tabBar">
-      <span class="tabBar-item" :class="{'tabBar-item-active': activeIndex === index}" v-for="(item, index) in tabBarList" :key="index" @click="activeIndex = index">{{item.name}} {{activeIndex}}</span>
+      <span class="tabBar-item" :class="{'tabBar-item-active': activeIndex === index}" v-for="(item, index) in tabBarList" :key="index" @click="activeIndex = index">{{item.name}}</span>
     </div>
     <!-- content -->
     <swiper :current="activeIndex" class="info-content" @change="swiperChange" :style="{'height': swiperHeight * 2 + 'rpx'}">
@@ -18,9 +16,14 @@
           <div class="introduction">
             <p class="introduction-title">
               <span class="introduction-title__name">{{videoInfo.title}}</span>
-              <span class="introduction-title__num">播放次数：{{videoInfo.view_num || viewNum}}</span>
+              <span class="introduction-title__num">
+                <p>播放次数：{{videoInfo.view_num || viewNum}}</p>
+              </span>
             </p>
-            <p class="introduction-lable c-red">简介</p>
+            <p class="introduction-lable c-red">
+              简介
+              <span class="introduction-title__num" style="float: right;">发布时间：{{videoInfo.published_format}}</span>
+            </p>
             <p class="introduction-description" v-html="videoInfo.short_description"></p>            
             <p class="introduction-lable c-red">详细介绍</p>
             <p class="introduction-description" v-html="videoInfo.description"></p>
@@ -31,12 +34,18 @@
       <swiper-item>
         <scroll-view  scroll-y :style="{'height': swiperHeight * 2 + 'rpx'}">
           <ul class="list-container">
-            <li class="list-item" v-for="(item, index) in courseVideoList" :class="{ red: aa }" :key="index" @click="goVideo(item)" >
+            <video-list 
+              v-for="(item, index) in courseVideoList" 
+              :key="index" 
+              :index="index" 
+              :item="item" 
+              @goVideo="goVideo"></video-list>
+            <!-- <li class="list-item" v-for="(item, index) in courseVideoList" :class="{ red: aa }" :key="index" @click="goVideo(item)" >
               <div class="video-icon">
                 <img class="video-icon__img" src="../../assets/img/triangle-icon.png" alt="" mode="widthFix">
               </div>
               <div class="video-title">{{(index + 1) + ' . ' + item.title}}</div>
-            </li>
+            </li> -->
           </ul>
         </scroll-view>
       </swiper-item>
@@ -65,10 +74,12 @@
 <script>
 import { formatTime } from '@/utils/index'
 import card from '@/components/card'
+import videoList from '@/components/video-list'
 
 export default {
   components: {
-    card
+    card,
+    videoList
   },
 
   data () {
@@ -81,10 +92,7 @@ export default {
         {name: '列表', index: 0, value: 'name'},
         {name: '评价', index: 0, value: 'name'}
       ],
-      playUrl: [
-        {url: 'http://wxsnsdy.tc.qq.com/105/20210/snsdyvideodownload?filekey=30280201010421301f0201690402534804102ca905ce620b1241b726bc41dcff44e00204012882540400&bizid=1023&hy=SH&fileparam=302c020101042530230204136ffd93020457e3c4ff02024ef202031e8d7f02030f42400204045a320a0201000400'},
-        {url: ''}
-      ],
+      playUrl: [],
       // video
       videoId: '',
       videosComments: [],
@@ -114,21 +122,18 @@ export default {
     // })
   },
   methods: {
-    init () {
-      console.log('courseVideoList', this.$mp.query, this.courseVideoList)
-      this.courseVideoList = JSON.parse(this.$mp.query.courseVideoList)
-      const videoId = this.$mp.query.id
-      this._getVideosInfo({}, videoId)
-      this._getVideosUrl({}, videoId)
-      this._getVideosComments({}, videoId)
+    async init (videoId) {
+      await this._getVideosInfo({}, videoId)
+      await this._getVideosComments({}, videoId)
+      await this._getVideosUrl({}, videoId)
     },
     swiperChange (e) {
-      console.log('e ----- >', e)
       this.activeIndex = e.mp.detail.current
     },
     // 切换视屏
-    goVideo () {
-      // TODO: 视屏切换
+    goVideo (video) {
+      // 视屏切换
+      this.init(video.id)
     },
     // 跳去评论
     goComment (item, retirect) {
@@ -142,18 +147,36 @@ export default {
     _getVideosInfo (data, id) {
       this.$http.video.getVideosInfo(data, id).then(res => {
         this.videoInfo = res.data
+        this.videoInfo.published_format = formatTime(res.data.published_at, true)
       })
     },
     // 视频播放地址
     _getVideosUrl (data, id) {
+      if (!wx.getStorageSync('access_token')) {
+        wx.showToast({
+          title: '请使用会员账号登录，再观看视屏',
+          icon: 'none',
+          mask: true
+        })
+        return
+      }
       this.$http.video.getVideosUrl(data, id).then(res => {
         console.log('_getVideosUrl', res)
-        this.playUrl = res
+        if (res && res.length > 0) {
+          this.playUrl = res
+        } else {
+          this.playUrl = [
+            {url: 'http://wxsnsdy.tc.qq.com/105/20210/snsdyvideodownload?filekey=30280201010421301f0201690402534804102ca905ce620b1241b726bc41dcff44e00204012882540400&bizid=1023&hy=SH&fileparam=302c020101042530230204136ffd93020457e3c4ff02024ef202031e8d7f02030f42400204045a320a0201000400'}
+          ]
+        }
       }).catch((err) => {
-        console.log(err)
+        console.log('没拿到url, err', err)
+        this.playUrl = [
+          {url: 'http://wxsnsdy.tc.qq.com/105/20210/snsdyvideodownload?filekey=30280201010421301f0201690402534804102ca905ce620b1241b726bc41dcff44e00204012882540400&bizid=1023&hy=SH&fileparam=302c020101042530230204136ffd93020457e3c4ff02024ef202031e8d7f02030f42400204045a320a0201000400'}
+        ]
         wx.showToast({
           title: '未知错误',
-          icon: 'node',
+          icon: 'none',
           mask: true
         })
       })
@@ -172,13 +195,17 @@ export default {
       })
     }
   },
-  created () {
-    const logs = (wx.getStorageSync('logs') || [])
-    this.logs = logs.map(log => formatTime(new Date(log)))
-  },
-  mounted () {
+  onShow () {
     this.videoId = this.$mp.query.id
-    this.init()
+    this.courseVideoList = JSON.parse(this.$mp.query.courseVideoList)
+    this.init(this.videoId)
+    console.log('onshow', this.videoId)
+  },
+  onHide () {
+    this.playUrl = []
+  },
+  onUnload () {
+    this.playUrl = []
   }
 }
 </script>
@@ -198,6 +225,13 @@ export default {
     left: 0;
     width: 100%;
     height: 450rpx;
+    &_null{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: @font-color-gray;
+    }
   }
   .tabBar{
     display: flex;
@@ -259,38 +293,8 @@ export default {
     }
     // 列表
     .list-container{
-      padding: 0 0 0 10px;
+      padding: 0 20px;
       position: relative;
-      .list-item{
-        display: flex;
-        align-items: center;
-        .video-icon{
-          display: flex;
-          flex: 0 0 auto;
-          width: 32rpx;
-          height: 32rpx;
-          border: 1px solid #787878;
-          align-items: center;
-          justify-content: center;
-          border-radius: 32rpx;
-          margin-right: 10px;
-          transform: rotate(-90deg);
-          &__img{
-            flex: 0 0 auto;
-            width: 20rpx;
-            height: auto;
-            position: relative;
-            top: 3rpx;
-          }
-        }
-        .video-title{
-          display: flex;
-          flex: 1;
-          font-size: 13px;
-          line-height: 2.6;
-          border-bottom: 1px solid @border-color;
-        }
-      }
     }
     // 评价
     .comments-list{

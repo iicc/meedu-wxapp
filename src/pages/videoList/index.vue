@@ -2,12 +2,12 @@
   <div class="course-info">
     <!-- course-info -->
     <div class="info section">
-      <span class="info-tag" v-if="courseInfo.charge">收费课程</span>
+      <span class="info-tag" v-if="courseInfo.charge">实战课程</span>
       <span class="info-tag" v-else>免费课程</span>
       <h1 class="info-title">{{courseInfo.title}}</h1>
       <!-- <card :src="courseInfo.thumb"></card> -->
       <img class="info-img" :src="courseInfo.thumb" alt="" mode="">
-      <p class="info-time">上线时间： {{courseInfo.published_format}} · 观看：{{courseInfo.view_num || viewNum}}</p>
+      <p class="info-time">上线时间： {{courseInfo.published_format}} · 观看：{{courseInfo.view_num || 0}}</p>
     </div>
 
     <section class="line"></section>
@@ -15,7 +15,9 @@
     <!-- introduction -->
     <div class="introduction section ">
       <label class="section-label">简介</label>
-      <p class="introduction-text" v-html="courseInfo.description"></p>
+      <div class="introduction-text">
+        <wxParse className="introduction-text" :content="courseInfo.description" :imageProp="imageProp" />
+      </div>
     </div>
     
     <section class="line"></section>
@@ -24,12 +26,23 @@
     <div class="video-list section">
       <label class="section-label">视屏</label>
       <ul class="list-container">
-        <li class="list-item" v-for="(item, index) in courseVideoList" :class="{ red: aa }" :key="index" @click="goVideo(item)" >
+        <video-list 
+          v-for="(item, index) in courseVideoList" 
+          :key="index" 
+          :index="index" 
+          :item="item" 
+          @goVideo="goVideo"></video-list>
+        <!-- <li class="list-item" v-for="(item, index) in courseVideoList" :class="{ red: aa }" :key="index" @click="goVideo(item)" >
           <div class="video-icon">
             <img class="video-icon__img" src="../../assets/img/triangle-icon.png" alt="" mode="widthFix">
           </div>
-          <div class="video-title">{{(index + 1) + ' . ' + item.title}}</div>
-        </li>
+          <div class="video-title">
+            <span>{{(index + 1) + ' . ' + item.title}}</span>
+            <span>
+              <img class="video-icon__img" src="../../assets/img/turn-right-d.png" alt="" mode="widthFix">
+            </span>
+          </div>
+        </li> -->
       </ul>
     </div>
 
@@ -59,10 +72,14 @@
 <script>
 import { formatTime } from '@/utils/index'
 import card from '@/components/card'
+import wxParse from 'mpvue-wxparse'
+import videoList from '@/components/video-list'
 
 export default {
   components: {
-    card
+    card,
+    wxParse,
+    videoList
   },
 
   data () {
@@ -71,14 +88,13 @@ export default {
       courseId: '',
       courseInfo: '',
       courseVideoList: [],
-      courseCommentsList: []
+      courseCommentsList: [],
+      imageProp: {
+        mode: 'widthFix'
+      }
     }
   },
-  computed: {
-    viewNum () {
-      return parseInt(Math.random(1) * 1000)
-    }
-  },
+
   methods: {
     init () {
       console.log('init this.courseId', this.courseId)
@@ -133,11 +149,7 @@ export default {
       })
     }
   },
-  created () {
-    const logs = (wx.getStorageSync('logs') || [])
-    this.logs = logs.map(log => formatTime(new Date(log)))
-  },
-  mounted () {
+  onShow () {
     this.courseId = this.$mp.query.id
     this.init()
   },
@@ -147,7 +159,7 @@ export default {
 
 <style lang="less">
 @import '../../assets/style/variable.less';
-
+@import url("~mpvue-wxparse/src/wxParse.css");
 .line{
   position: relative;
   top: 0;
@@ -194,6 +206,8 @@ export default {
       width: 100%;
       height: 360rpx;
       border-radius: 10rpx;
+      box-shadow: 0rpx 4rpx 10rpx rgba(0, 0, 0, 0.1);
+      margin: 10rpx 0;
     }
     &-time{
       font-size: 12px;
@@ -216,36 +230,6 @@ export default {
     .list-container{
       padding: 0 0 0 10px;
       position: relative;
-      .list-item{
-        display: flex;
-        align-items: center;
-        .video-icon{
-          display: flex;
-          flex: 0 0 auto;
-          width: 32rpx;
-          height: 32rpx;
-          border: 1px solid #787878;
-          align-items: center;
-          justify-content: center;
-          border-radius: 32rpx;
-          margin-right: 10px;
-          transform: rotate(-90deg);
-          &__img{
-            flex: 0 0 auto;
-            width:20rpx;
-            height: auto;
-            position: relative;
-            top: 3rpx;
-          }
-        }
-        .video-title{
-          display: flex;
-          flex: 1;
-          font-size: 13px;
-          line-height: 2.6;
-          border-bottom: 1px solid @border-color;
-        }
-      }
     }
   }
   /*
@@ -254,12 +238,31 @@ export default {
   .comments-list{
     .section-submit{
       float: right;
-      font-size: 13px;
-      // border: 1px solid 
-      color: #fff;
-      background: rgb(234, 124, 62);
-      border-radius: 20px;
-      padding: 5px 10px;
+      // font-size: 13px;
+      // color: #fff;
+      // background: rgb(234, 124, 62);
+      // border-radius: 20px;
+      // padding: 5px 10px;
+      background-color:#e54d42;
+      color:#fff;
+      transform:translate(1rpx, 1rpx);
+      border-radius: 5000rpx;
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      box-sizing:border-box;
+      padding:0 30rpx;
+      font-size:28rpx;
+      height:64rpx;
+      line-height:1;
+      text-align:center;
+      text-decoration:none;
+      overflow:visible;
+      margin-left:initial;
+      transform:translate(0rpx, 0rpx);
+      margin-right:initial;
+
     }
     .list-container{
       margin-top: 10px;
@@ -268,11 +271,12 @@ export default {
         .item-avatar{
           display: flex;
           flex: 0 0 auto;
-          width: 40px;
-          height: auto;
+          width: 96rpx;
+          height: 96rpx;
           border-radius: 20px;
           padding-right: 5px;
           box-sizing: border-box;
+          border-radius: 100rpx;
         }
         .item-content{
           display: flex;
